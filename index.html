@@ -99,6 +99,17 @@
       .kpi-grid { grid-template-columns: repeat(2, 1fr); }
       .chart-grid-2, .chart-grid-3 { grid-template-columns: 1fr; }
     }
+
+    .hbar-wrap { padding:0; }
+    .hbar-legend { display:flex; gap:16px; margin-bottom:10px; }
+    .hbar-legend-item { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--ink-mid); }
+    .hbar-legend-dot { width:10px; height:10px; border-radius:2px; flex-shrink:0; }
+    .hbar-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+    .hbar-label { width:175px; font-size:11px; font-weight:500; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; }
+    .hbar-track { flex:1; height:16px; border-radius:3px; background:var(--surface2); overflow:hidden; display:flex; min-width:0; }
+    .hbar-seg-org { background:var(--positive); }
+    .hbar-seg-ppc { background:var(--negative); }
+    .hbar-val { width:58px; font-size:12px; font-weight:700; color:var(--ink); text-align:right; flex-shrink:0; }
   </style>
 </head>
 <body>
@@ -155,7 +166,7 @@
         <div class="chart-card">
           <div class="chart-title">Top productos por ventas</div>
           <div class="chart-sub">Ranking por ingresos totales del mes</div>
-          <div class="chart-wrap" style="height:280px;"><canvas id="chartProductos"></canvas></div>
+          <div id="chartProductos" class="hbar-wrap" style="padding-top:4px;"></div>
         </div>
         <div class="chart-card" style="display:flex;flex-direction:column;">
           <div class="chart-title">Orgánico vs PPC</div>
@@ -322,14 +333,26 @@
       [{ data:[pctOrg,pctPPC], backgroundColor:['#16A34A','#DC2626'], borderWidth:0, hoverOffset:4 }]);
 
     const top8 = [...prodAgg].sort((a,b)=>(b.ventas_totales||0)-(a.ventas_totales||0)).slice(0,8);
-    makeChart('chartProductos','bar',
-      top8.map(p=>(p.titulo||p.asin||'—').split('|')[0].trim().substring(0,28)),
-      [
-        { label:'Orgánico', data:top8.map(p=>Math.max(0,(p.ventas_totales||0)-(p.ppc_ventas||0))), backgroundColor:'#16A34A', borderRadius:3, borderSkipped:false },
-        { label:'PPC', data:top8.map(p=>p.ppc_ventas||0), backgroundColor:'#DC2626', borderRadius:3, borderSkipped:false },
-      ],
-      { legend:true, indexAxis:'y', stacked:true, xFmt:v=>fmtEur(v) }
-    );
+    // Gráfico de productos como barras HTML (siempre muestra etiquetas)
+    const hbarEl = document.getElementById('chartProductos');
+    if (hbarEl) {
+      const maxV = top8.length > 0 ? Math.max(...top8.map(p=>p.ventas_totales||0)) : 1;
+      hbarEl.innerHTML = '<div class="hbar-legend">' +
+        '<div class="hbar-legend-item"><div class="hbar-legend-dot" style="background:var(--positive)"></div>Orgánico</div>' +
+        '<div class="hbar-legend-item"><div class="hbar-legend-dot" style="background:var(--negative)"></div>PPC</div>' +
+        '</div>' +
+        top8.map(function(p) {
+          var org = Math.max(0,(p.ventas_totales||0)-(p.ppc_ventas||0));
+          var ppc = p.ppc_ventas||0;
+          var orgW = (maxV > 0 ? org/maxV*100 : 0).toFixed(1);
+          var ppcW = (maxV > 0 ? ppc/maxV*100 : 0).toFixed(1);
+          var lbl = (p.titulo||p.asin||'—').split('|')[0].trim();
+          return '<div class="hbar-row"><div class="hbar-label" title="'+lbl+'">'+lbl+'</div>' +
+            '<div class="hbar-track"><div class="hbar-seg-org" style="width:'+orgW+'%"></div><div class="hbar-seg-ppc" style="width:'+ppcW+'%"></div></div>' +
+            '<div class="hbar-val">'+fmtEur(p.ventas_totales)+'</div></div>';
+        }).join('');
+    }
+
 
     // Carteras desde campañas (si hay) o agrupadas por tipo desde productos
     const carteras = {};
@@ -355,8 +378,8 @@
     makeChart('chartInvVentas','bar',
       cartArr.map(([n])=>n.substring(0,20)),
       [
-        { label:'Inversión', data:cartArr.map(([,d])=>d.inv), backgroundColor:'rgba(26,86,219,0.7)', borderRadius:3, borderSkipped:false, maxBarThickness:14 },
-        { label:'Ventas PPC', data:cartArr.map(([,d])=>d.ven), backgroundColor:'rgba(22,163,74,0.7)', borderRadius:3, borderSkipped:false, maxBarThickness:14 },
+        { label:'Inversión', data:cartArr.map(([,d])=>d.inv), backgroundColor:'#1A56DB', borderRadius:3, borderSkipped:false, maxBarThickness:14 },
+        { label:'Ventas PPC', data:cartArr.map(([,d])=>d.ven), backgroundColor:'#16A34A', borderRadius:3, borderSkipped:false, maxBarThickness:14 },
       ],
       { legend:true, yFmt:v=>fmtEur(v) }
     );
