@@ -256,7 +256,7 @@
         },
         scales: type === 'doughnut' ? undefined : {
           x: { ticks:{ color:'#999999', font:{size:11,family:'Inter'}, callback:opts.xFmt||null }, grid:{ color:'#E5E5E5' }, stacked:opts.stacked||false },
-          y: { ticks:{ color:'#555555', font:{size:11,family:'Inter'}, callback:opts.yFmt||null, autoSkip:false, maxRotation:0 }, grid:{ display:isHoriz?false:true, color:'#E5E5E5' }, stacked:opts.stacked||false }
+          y: { afterFit: isHoriz ? (axis=>{ axis.width=190; }) : undefined, ticks:{ color:'#555555', font:{size:11,family:'Inter'}, callback:opts.yFmt||null, autoSkip:false, maxRotation:0 }, grid:{ display:isHoriz?false:true, color:'#E5E5E5' }, stacked:opts.stacked||false }
         }
       }
     });
@@ -349,7 +349,7 @@
       cartArr.map(([n])=>n.substring(0,20)),
       [{ data:cartArr.map(([,d])=>d.inv>0?+(d.ven/d.inv).toFixed(2):0),
         backgroundColor:cartArr.map(([,d])=>{ const r=d.inv>0?d.ven/d.inv:0; return r>=3?'#16A34A':r>=2?'#1A56DB':'#DC2626'; }),
-        borderRadius:4, borderSkipped:false, maxBarThickness:28 }],
+        borderRadius:4, borderSkipped:false, maxBarThickness:14 }],
       { yFmt:v=>`${v}x` }
     );
     makeChart('chartInvVentas','bar',
