@@ -206,8 +206,8 @@
       </div>
       <div class="chart-card" style="margin-top:12px;">
         <table class="data-table">
-          <thead><tr><th>Cartera</th><th style="text-align:right;">Inversión</th><th style="text-align:right;">Ventas PPC</th><th style="text-align:right;">ROAS</th><th style="text-align:right;">ACoS</th></tr></thead>
-          <tbody id="bodyCarteras"><tr><td colspan="5" class="no-data">Cargando...</td></tr></tbody>
+          <thead><tr><th>Cartera</th><th style="text-align:right;">Inversión</th><th style="text-align:right;">Ventas PPC</th><th style="text-align:right;">ROAS</th><th style="text-align:right;">ACoS</th><th style="text-align:right;">TACoS</th></tr></thead>
+          <tbody id="bodyCarteras"><tr><td colspan="6" class="no-data">Cargando...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -399,10 +399,12 @@
     const bodyC = document.getElementById('bodyCarteras');
     bodyC.innerHTML = cartArr.length ? cartArr.map(([nombre,d]) => {
       const roas = d.inv>0?d.ven/d.inv:0; const acos = d.ven>0?(d.inv/d.ven)*100:0;
+      const tc = totalVentas>0?(d.inv/totalVentas)*100:0;
       return `<tr><td>${nombre}</td><td class="td-num">${fmtEur(d.inv)}</td><td class="td-num">${fmtEur(d.ven)}</td>
         <td class="td-num"><span class="badge ${roas>=3?'badge-pos':roas>=2?'badge-neu':'badge-neg'}">${fmt(roas,2)}x</span></td>
-        <td class="td-num"><span class="badge ${acos<=20?'badge-pos':acos<=35?'badge-neu':'badge-neg'}">${fmt(acos,1)}%</span></td></tr>`;
-    }).join('') : '<tr><td colspan="5" class="no-data">Sin datos de carteras.</td></tr>';
+        <td class="td-num"><span class="badge ${acos<=20?'badge-pos':acos<=35?'badge-neu':'badge-neg'}">${fmt(acos,1)}%</span></td>
+        <td class="td-num"><span class="badge ${tc<=5?'badge-pos':tc<=12?'badge-neu':'badge-neg'}">${fmt(tc,1)}%</span></td></tr>`;
+    }).join('') : '<tr><td colspan="6" class="no-data">Sin datos de carteras.</td></tr>';
 
     const top10 = [...prodAgg].sort((a,b)=>(b.ventas_totales||0)-(a.ventas_totales||0)).slice(0,10);
     const bodyP = document.getElementById('bodyProductos');
