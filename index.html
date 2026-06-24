@@ -288,12 +288,23 @@
     }
   }
 
+  const COLORS_ES = new Set(['rojo','blanco','negro','azul','verde','amarillo','naranja','violeta','gris','rosa','marron','beige','turquesa','morado','lila','crema','dorado','plateado','granate','coral','fucsia','azulon','burdeos','champan','ocre']);
+  function getParentModel(titulo) {
+    if (!titulo) return titulo;
+    const firstPart = titulo.split('|')[0].trim();
+    const words = firstPart.split(/\s+/);
+    const last = (words[words.length - 1] || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+    if (COLORS_ES.has(last)) return words.slice(0, -1).join(' ');
+    return firstPart;
+  }
+
   function render(productos, campanas, mes) {
-    // Agregar por ASIN (Supabase tiene 1 fila por día por ASIN)
+    // Agregar por modelo padre (agrupa variantes de color del mismo producto)
     const byAsin = new Map();
     for (const p of productos) {
-      const key = p.asin || p.sku;
-      if (!byAsin.has(key)) byAsin.set(key, { ...p, ventas_totales:0, unidades_vendidas:0, ppc_gasto:0, ppc_ventas:0 });
+      const parentTitle = getParentModel(p.titulo);
+      const key = parentTitle || p.asin || p.sku;
+      if (!byAsin.has(key)) byAsin.set(key, { ...p, titulo: parentTitle || p.titulo, ventas_totales:0, unidades_vendidas:0, ppc_gasto:0, ppc_ventas:0 });
       const ag = byAsin.get(key);
       ag.ventas_totales += p.ventas_totales||0;
       ag.unidades_vendidas += p.unidades_vendidas||0;
