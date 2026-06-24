@@ -288,14 +288,15 @@
     }
   }
 
-  const COLORS_ES = new Set(['rojo','blanco','negro','azul','verde','amarillo','naranja','violeta','gris','rosa','marron','beige','turquesa','morado','lila','crema','dorado','plateado','granate','coral','fucsia','azulon','burdeos','champan','ocre']);
   function getParentModel(titulo) {
     if (!titulo) return titulo;
     const firstPart = titulo.split('|')[0].trim();
-    const words = firstPart.split(/\s+/);
-    const last = (words[words.length - 1] || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
-    if (COLORS_ES.has(last)) return words.slice(0, -1).join(' ');
-    return firstPart;
+    // Strip "Brand - " prefix (e.g. "MiPuf - ")
+    const dashIdx = firstPart.indexOf(' - ');
+    const modelPart = dashIdx >= 0 ? firstPart.slice(dashIdx + 3).trim() : firstPart;
+    // Group by first 2 words — groups all color/size variants of the same model
+    const words = modelPart.split(/\s+/);
+    return words.slice(0, 2).join(' ');
   }
 
   function render(productos, campanas, mes) {
